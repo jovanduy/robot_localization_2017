@@ -222,6 +222,11 @@ class ParticleFilter:
         self.particle_cloud = []
         # TODO create particles
 
+        # Making one particle
+        self.particle_cloud.append(Particle(x=xy_theta[0], y=xy_theta[1], theta=xy_theta[2]))
+
+        print "xy_theta"
+        print xy_theta
         self.normalize_particles()
         self.update_robot_pose()
 
