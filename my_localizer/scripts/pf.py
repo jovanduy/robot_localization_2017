@@ -4,6 +4,8 @@
 
 import rospy
 
+import sys
+
 from std_msgs.msg import Header, String
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, PoseArray, Pose, Point, Quaternion
@@ -13,8 +15,8 @@ from copy import deepcopy
 import tf
 from tf import TransformListener
 from tf import TransformBroadcaster
-from tf.transformations import euler_from_quaternion, rotation_matrix, quaternion_from_matrix
-from random import gauss
+from tf.transformations import euler_from_quaternion, rotation_matrix, quaternion_from_matrix, quaternion_from_euler
+from random import gauss, randint
 
 import math
 import time
@@ -141,12 +143,14 @@ class ParticleFilter:
             mean_x += particle.x
             mean_y += particle.y
             mean_theta += particle.theta
-        mean_x /= self.num_particles
-        mean_y /= self.num_particles
-        mean_theta /= self.num_particles
-        self.robot_pose = convert_translation_rotation_to_pose(translation=[mean_x, mean_y, 0], rotation=[0, 0, 0, mean_theta])
+        mean_x /= self.n_particles
+        mean_y /= self.n_particles
+        mean_theta /= self.n_particles
+        quat_theta = quaternion_from_euler(0, 0, mean_theta)
+        self.robot_pose = convert_translation_rotation_to_pose(translation=[mean_x, mean_y, 0], rotation=quat_theta)
         #self.robot_pose = Pose(position=Point(x=mean_x, y=mean_y, z=0), orientation=Quaternation())
-
+        
+        
     def update_particles_with_odom(self, msg):
         """ Update the particles using the newly given odometry pose.
             The function computes the value delta which is a tuple (x,y,theta)
@@ -194,7 +198,8 @@ class ParticleFilter:
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
         # TODO: implement this
-        pass
+        for particle in self.particle_cloud:
+            particle.w = randint(2, 100)
 
     @staticmethod
     def weighted_values(values, probabilities, size):
@@ -247,8 +252,29 @@ class ParticleFilter:
 
     def normalize_particles(self):
         """ Make sure the particle weights define a valid distribution (i.e. sum to 1.0) """
-        pass
-        # TODO: implement this
+        minimum = sys.maxint
+        maximum = -sys.maxint
+        for particle in self.particle_cloud:
+            weight = particle.w
+            if weight < minimum:
+                minimum = weight
+            if weight > maximum:
+                maximum = weight
+        print "MIN: ", minimum
+        print "MAX: ", maximum
+        result = 0
+        for particle in self.particle_cloud:
+            numerator = particle.w - minimum
+            denominator = maximum - minimum
+            if denominator != 0:
+                particle.w = float(numerator)/float(denominator)
+            #printing for testing
+            if particle.w:
+                result += particle.w
+        if result == 1:
+            print "NORMAL!"
+        else:
+            print "whoops, not normalized. sum = ", result
 
     def publish_particles(self, msg):
         particles_conv = []
