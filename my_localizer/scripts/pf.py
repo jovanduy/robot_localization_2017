@@ -118,8 +118,18 @@ class ParticleFilter:
         # TODO: fill in the appropriate service call here.  The resultant map should be assigned be passed
         #       into the init method for OccupancyField
 
+
         # for now we have commented out the occupancy field initialization until you can successfully fetch the map
-        #self.occupancy_field = OccupancyField(map)
+        
+        def handle_dynamic_map(self,resp):
+            return GetMapResponse(param)
+        s = rospy.Service('dynamic_map', GetMap, self.handle_dynamic_map)
+
+        rospy.wait_for_service('dynamic_map')
+        map = rospy.ServiceProxy('dynamic_map', GetMap)
+
+        self.occupancy_field = OccupancyField(map)
+        print self.occupancy_field
         self.initialized = True
 
     def update_robot_pose(self):
@@ -143,6 +153,7 @@ class ParticleFilter:
 
             msg: this is not really needed to implement this, but is here just in case.
         """
+        
         new_odom_xy_theta = convert_pose_to_xy_and_theta(self.odom_pose.pose)
         # compute the change in x,y,theta since our last update
         if self.current_odom_xy_theta:
@@ -156,8 +167,12 @@ class ParticleFilter:
             self.current_odom_xy_theta = new_odom_xy_theta
             return
 
-        # TODO: modify particles using delta
-        # For added difficulty: Implement sample_motion_odometry (Prob Rob p 136)
+        # Modify particles using delta
+        for particle in self.particle_cloud:
+            particle.x -= delta[0]
+            particle.y -= delta[1]
+            particle.theta += delta[2]
+
 
     def map_calc_range(self,x,y,theta):
         """ Difficulty Level 3: implement a ray tracing likelihood model... Let me know if you are interested """
@@ -219,14 +234,12 @@ class ParticleFilter:
                       particle cloud around.  If this input is ommitted, the odometry will be used """
         if xy_theta == None:
             xy_theta = convert_pose_to_xy_and_theta(self.odom_pose.pose)
-        self.particle_cloud = []
-        # TODO create particles
+       
+       # Creating particle cloud
+        self.particle_cloud=[Particle(x=gauss(xy_theta[0], .5), y= gauss(xy_theta[1], .5),
+            theta=gauss(xy_theta[2], .5)) for n in range (0, self.n_particles)]
 
-        # Making one particle
-        self.particle_cloud.append(Particle(x=xy_theta[0], y=xy_theta[1], theta=xy_theta[2]))
 
-        print "xy_theta"
-        print xy_theta
         self.normalize_particles()
         self.update_robot_pose()
 
@@ -293,6 +306,7 @@ class ParticleFilter:
             self.fix_map_to_odom_transform(msg)     # update map to odom transform now that we have new particles
         # publish particles (so things like rviz can see them)
         self.publish_particles(msg)
+
 
     def fix_map_to_odom_transform(self, msg):
         """ This method constantly updates the offset of the map and 
