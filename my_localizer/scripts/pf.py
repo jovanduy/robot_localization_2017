@@ -121,15 +121,8 @@ class ParticleFilter:
 
         # for now we have commented out the occupancy field initialization until you can successfully fetch the map
         
-        def handle_dynamic_map(self,resp):
-            return GetMapResponse(param)
-        s = rospy.Service('dynamic_map', GetMap, self.handle_dynamic_map)
-
-        rospy.wait_for_service('dynamic_map')
-        map = rospy.ServiceProxy('dynamic_map', GetMap)
-
-        self.occupancy_field = OccupancyField(map)
-        print self.occupancy_field
+        #self.occupancy_field = OccupancyField(map)
+        #print self.occupancy_field
         self.initialized = True
 
     def update_robot_pose(self):
@@ -141,9 +134,18 @@ class ParticleFilter:
         # first make sure that the particle weights are normalized
         self.normalize_particles()
 
-        # TODO: assign the lastest pose into self.robot_pose as a geometry_msgs.Pose object
-        # just to get started we will fix the robot's pose to always be at the origin
-        self.robot_pose = Pose()
+        mean_x = 0
+        mean_y = 0
+        mean_theta = 0
+        for particle in self.particle_cloud:
+            mean_x += particle.x
+            mean_y += particle.y
+            mean_theta += particle.theta
+        mean_x /= self.num_particles
+        mean_y /= self.num_particles
+        mean_theta /= self.num_particles
+        self.robot_pose = convert_translation_rotation_to_pose(translation=[mean_x, mean_y, 0], rotation=[0, 0, 0, mean_theta])
+        #self.robot_pose = Pose(position=Point(x=mean_x, y=mean_y, z=0), orientation=Quaternation())
 
     def update_particles_with_odom(self, msg):
         """ Update the particles using the newly given odometry pose.
