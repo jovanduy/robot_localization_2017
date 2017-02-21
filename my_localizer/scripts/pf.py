@@ -263,23 +263,10 @@ class ParticleFilter:
 
     def normalize_particles(self):
         """ Make sure the particle weights define a valid distribution (i.e. sum to 1.0) """
-        minimum = sys.maxint
-        maximum = -sys.maxint
-        for particle in self.particle_cloud:
-            weight = particle.w
-            if weight < minimum:
-                minimum = weight
-            if weight > maximum:
-                maximum = weight
-
         sum_weights = sum([particle.w for particle in self.particle_cloud])
-        result = 0
         for particle in self.particle_cloud:
             particle.w = particle.w/sum_weights
-            #printing for testing
-            if particle.w:
-                result += particle.w
-        print result
+
 
     def publish_particles(self, msg):
         particles_conv = []
