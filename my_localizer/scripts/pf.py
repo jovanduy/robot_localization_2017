@@ -117,14 +117,16 @@ class ParticleFilter:
         self.current_odom_xy_theta = []
 
         # request the map from the map server, the map should be of type nav_msgs/OccupancyGrid
-        # TODO: fill in the appropriate service call here.  The resultant map should be assigned be passed
-        #       into the init method for OccupancyField
-
-
-        # for now we have commented out the occupancy field initialization until you can successfully fetch the map
-        
-        #self.occupancy_field = OccupancyField(map)
-        #print self.occupancy_field
+        rospy.wait_for_service('static_map')
+        try:
+            static_map = rospy.ServiceProxy('static_map', GetMap)
+            resp = static_map()
+            map = resp.map
+            self.occupancy_field = OccupancyField(map)
+            print self.occupancy_field
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+            
         self.initialized = True
 
     def update_robot_pose(self):
@@ -197,10 +199,19 @@ class ParticleFilter:
 
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
-        # TODO: implement this
-        for particle in self.particle_cloud:
-            particle.w = randint(2, 100)
-
+        min_dist = sys.maxint
+        for range in msg.ranges:
+            if range < min_dist and range != 0:
+                min_dist = range
+        for index, particle in enumerate(self.particle_cloud):
+            dist = self.occupancy_field.get_closest_obstacle_distance(particle.x, particle.y)
+            if math.isnan(dist):
+                particle.w = 0
+            # Compute the difference between the particle closest_dist and the laser's min_dist
+            diff = abs(dist - min_dist)
+            particle.w = math.exp(-(diff*diff)/(2*.5*.5))
+            #TODO: improve this by incorporating directionality of each particle
+            
     @staticmethod
     def weighted_values(values, probabilities, size):
         """ Return a random sample of size elements from the set values with the specified probabilities
@@ -260,21 +271,15 @@ class ParticleFilter:
                 minimum = weight
             if weight > maximum:
                 maximum = weight
-        print "MIN: ", minimum
-        print "MAX: ", maximum
+
+        sum_weights = sum([particle.w for particle in self.particle_cloud])
         result = 0
         for particle in self.particle_cloud:
-            numerator = particle.w - minimum
-            denominator = maximum - minimum
-            if denominator != 0:
-                particle.w = float(numerator)/float(denominator)
+            particle.w = particle.w/sum_weights
             #printing for testing
             if particle.w:
                 result += particle.w
-        if result == 1:
-            print "NORMAL!"
-        else:
-            print "whoops, not normalized. sum = ", result
+        print result
 
     def publish_particles(self, msg):
         particles_conv = []
