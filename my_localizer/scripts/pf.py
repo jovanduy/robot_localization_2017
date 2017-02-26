@@ -89,7 +89,7 @@ class ParticleFilter:
         self.odom_frame = "odom"        # the name of the odometry coordinate frame
         self.scan_topic = "scan"        # the topic where we will get laser scans from 
 
-        self.n_particles = 10           # the number of particles to use
+        self.n_particles = 300           # the number of particles to use
 
         self.d_thresh = 0.2             # the amount of linear movement before performing an update
         self.a_thresh = math.pi/6       # the amount of angular movement before performing an update
@@ -196,9 +196,6 @@ class ParticleFilter:
         # make sure the distribution is normalized
         self.normalize_particles()
         self.particle_cloud = self.draw_random_sample(self.particle_cloud, [p.w for p in self.particle_cloud], self.n_particles)
-        # TODO: fill out the rest of the implementation
-
-
 
 
     def update_particles_with_laser(self, msg):
@@ -215,7 +212,7 @@ class ParticleFilter:
                     if dist != 0 and not math.isnan(dist):
                         dist_diffs.append(abs(dist - msg.ranges[i]))
             diff  = np.mean(dist_diffs)
-            particle.w = math.exp(-(diff*diff)/(2*.25*.25))
+            particle.w = math.exp(-(diff*diff)/(2*.5*.5))
             
             #        min_dist = sys.maxint       
         """
@@ -271,8 +268,8 @@ class ParticleFilter:
             xy_theta = convert_pose_to_xy_and_theta(self.odom_pose.pose)
        
        # Creating particle cloud
-        self.particle_cloud=[Particle(x=gauss(xy_theta[0], .5), y= gauss(xy_theta[1], .5),
-            theta=gauss(xy_theta[2], .1)) for n in range (0, self.n_particles)]
+        self.particle_cloud=[Particle(x=gauss(xy_theta[0], .3), y= gauss(xy_theta[1], .3),
+            theta=gauss(xy_theta[2], .2)) for n in range (0, self.n_particles)]
 
 
         self.normalize_particles()
@@ -293,7 +290,7 @@ class ParticleFilter:
         self.particle_pub.publish(PoseArray(header=Header(stamp=rospy.Time.now(),
                                             frame_id=self.map_frame),
                                   poses=particles_conv))
-
+        
     def scan_received(self, msg):
         """ This is the default logic for what to do when processing scan data.
             Feel free to modify this, however, I hope it will provide a good
