@@ -89,7 +89,7 @@ class ParticleFilter:
         self.odom_frame = "odom"        # the name of the odometry coordinate frame
         self.scan_topic = "scan"        # the topic where we will get laser scans from 
 
-        self.n_particles = 300          # the number of particles to use
+        self.n_particles = 10           # the number of particles to use
 
         self.d_thresh = 0.2             # the amount of linear movement before performing an update
         self.a_thresh = math.pi/6       # the amount of angular movement before performing an update
@@ -199,8 +199,22 @@ class ParticleFilter:
 
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
-        min_dist = sys.maxint
-        for range in msg.ranges:
+        for particle in self.particle_cloud:
+            dist_diffs = []
+            for i in range(0, len(msg.ranges)):
+                actual_dist = msg.ranges[i]
+                if actual_dist != 0:
+                    phi_plus_theta = particle.theta + i
+                    obsx = particle.x + actual_dist*math.cos(phi_plus_theta)
+                    obsy = particle.y + actual_dist*math.sin(phi_plus_theta)
+                    dist = self.occupancy_field.get_closest_obstacle_distance(obsx, obsy)
+                    if dist != 0 and not math.isnan(dist):
+                        dist_diffs.append(abs(dist - msg.ranges[i]))
+            diff  = np.mean(dist_diffs)
+            particle.w = math.exp(-(diff*diff)/(2*.25*.25))
+            
+            #        min_dist = sys.maxint       
+        """
             if range < min_dist and range != 0:
                 min_dist = range
         for index, particle in enumerate(self.particle_cloud):
@@ -208,10 +222,9 @@ class ParticleFilter:
             if math.isnan(dist):
                 particle.w = 0
             # Compute the difference between the particle closest_dist and the laser's min_dist
-            diff = abs(dist - min_dist)
-            particle.w = math.exp(-(diff*diff)/(2*.5*.5))
-            #TODO: improve this by incorporating directionality of each particle
-            
+            diff = abs(dist - min_dist)"""
+
+        
     @staticmethod
     def weighted_values(values, probabilities, size):
         """ Return a random sample of size elements from the set values with the specified probabilities
@@ -255,7 +268,7 @@ class ParticleFilter:
        
        # Creating particle cloud
         self.particle_cloud=[Particle(x=gauss(xy_theta[0], .5), y= gauss(xy_theta[1], .5),
-            theta=gauss(xy_theta[2], .5)) for n in range (0, self.n_particles)]
+            theta=gauss(xy_theta[2], .1)) for n in range (0, self.n_particles)]
 
 
         self.normalize_particles()
