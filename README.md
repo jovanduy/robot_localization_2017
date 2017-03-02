@@ -13,17 +13,17 @@ In addition to actually writing out a localization algorithm, another goal of th
 
 As previously mentioned, we implemented the particle filter algorithm to localize a Neato in a known map. The particle filter works through the following steps:
 
-- Input an initial guess of the robot’s location. This initial position guess consists of the x and y coordinates and heading of the robot relative to the map.
+1. Input an initial guess of the robot’s location. This initial position guess consists of the x and y coordinates and heading of the robot relative to the map.
 
-- Create a “cloud” of particles around the initial position with a Gaussian distribution. Each particle  represents a possible location (x, y, and heading) that the robot could be in at that moment. The particles are distributed around the initial guess, instead of exactly at the initial guess, to introduce noise around the original guess: the initial guess is just a *guess*, so distributing particles around this guess compensates for the imperfection of the guess. We used 300 particles by default.
+2. Create a “cloud” of particles around the initial position with a Gaussian distribution. Each particle  represents a possible location (x, y, and heading) that the robot could be in at that moment. The particles are distributed around the initial guess, instead of exactly at the initial guess, to introduce noise around the original guess: the initial guess is just a *guess*, so distributing particles around this guess compensates for the imperfection of the guess. We used 300 particles by default.
 
-- The robot moves (there is a change in the robot’s x, y, or heading), and the amount by which it moves is known.
+3. The robot moves (there is a change in the robot’s x, y, or heading), and the amount by which it moves is known.
 
-- The position of every particle is updated by this same amount that the robot moved.
+4. The position of every particle is updated by this same amount that the robot moved.
 
-- A laser scan is taken and the distance readings are read.
+5. A laser scan is taken and the distance readings are read.
 
-- The likelihood of every particle’s location being correct, called the particle’s “weight”, is calculated using this laser scan data.
+6. The likelihood of every particle’s location being correct, called the particle’s “weight”, is calculated using this laser scan data.
   - The laser scan provides us with information - that is somewhat imperfect due to inaccuracies of the sensor - about how close the robot actually is to an object for every direction around the robot.
 
   - Since each particle has an exact position and since we know the map, we can determine what the distance is to an object for every particle (and in every direction around a particle).
@@ -33,15 +33,15 @@ As previously mentioned, we implemented the particle filter algorithm to localiz
 
     - The particles’ weights are set to be this difference taken from a Gaussian distribution to introduce noise (accounting for inaccuracies in the laser sensor).
 
-- The particles’ weights are normalized so they sum to 1
+7. The particles’ weights are normalized so they sum to 1
 
-- 300 new particles are created to replace the old particle cloud.
+8. 300 new particles are created to replace the old particle cloud.
   - The location of each new particle is determined by randomly selecting the location of one of the old particles.
 
   - The probability that an old particle’s location will be chosen as a new particle’s location is determined by the old particle’s weight.
   - Thus, there is a high chance that many new particles will spawn at the location of an old particle that was highly likely to be the robot’s actual position, whereas very few or even no particles will spawn in the locations of old particles that were unlikely to be the robot’s position.
 
-These steps, except for creating an initial guess, continue to cycle through. The particle filter’s determination of the Neato’s location is simply the average of all of the particles’ locations. Over time, all of the particles will converge to being located among only a few different, highly likely locations, causing the average and the approximation of the Neato’s location to be (hopefully) fairly accurate. The particles should not all converge to the same spot due to the noise built in to the algorithm; there is a chance that a particle’s location could be very wrong, so we do not want all particles to accidentally all converge to one very wrong location, as recovering from such an inaccuracy would be nearly impossible.
+These steps, except for step 1 of creating an initial guess, continue to cycle through. The particle filter’s determination of the Neato’s location is simply the average of all of the particles’ locations. Over time, all of the particles will converge to being located among only a few different, highly likely locations, causing the average and the approximation of the Neato’s location to be (hopefully) fairly accurate. The particles should not all converge to the same spot due to the noise built in to the algorithm; there is a chance that a particle’s location could be very wrong, so we do not want all particles to accidentally all converge to one very wrong location, as recovering from such an inaccuracy would be nearly impossible.
 
 
 ### Design Decisions
