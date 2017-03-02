@@ -9,7 +9,6 @@ A robot in a known environment should be able to figure out where it is within t
 
 In addition to actually writing out a localization algorithm, another goal of this project was to gain more familiarity with ROS and robotics programming in general. 
 
-How did you solve the problem? (Note: this doesn't have to be super-detailed, you should try to explain what you did at a high-level so that others in the class could reasonably understand what you did).
 
 ### Solution to the problem
 
