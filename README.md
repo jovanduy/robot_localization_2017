@@ -35,6 +35,10 @@ These steps, except for creating an initial guess, continue to cycle through. Th
 
 ![original implementation end](https://github.com/jovanduy/robot_localization_2017/blob/master/my_localizer/images/original_end.png?raw=true)
  
+ 
+![original distance comparison](https://github.com/jovanduy/robot_localization_2017/blob/master/my_localizer/images/RobotLocalizationOriginal%20(2).png?raw=true)
+
+
   We were happy with the results of this implementation, but we did notice that while the x and y positions of particles were very accurate, the headings, or angles in space of the particles were less accurate. This encouraged us to think about ways we might improve how we determine particle weights.
 
 One idea we had, was simply to compare the heading of the particle relative to the closest perceived obstacle to the heading of the neato relative to the closest perceived obstacle. This angle would be the index of the minimum of the ranges received from the lidar scan data. We then could have the weight determined by both the difference in distances and the difference in angles.
