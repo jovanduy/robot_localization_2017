@@ -35,14 +35,9 @@ These steps, except for creating an initial guess, continue to cycle through. Th
 
 ![original implementation end](https://github.com/jovanduy/robot_localization_2017/blob/master/my_localizer/images/original_end.png?raw=true)
  
-[INSERT GRAPHIC/DIAGRAM  HERE]
-
   We were happy with the results of this implementation, but we did notice that while the x and y positions of particles were very accurate, the headings, or angles in space of the particles were less accurate. This encouraged us to think about ways we might improve how we determine particle weights.
 
 One idea we had, was simply to compare the heading of the particle relative to the closest perceived obstacle to the heading of the neato relative to the closest perceived obstacle. This angle would be the index of the minimum of the ranges received from the lidar scan data. We then could have the weight determined by both the difference in distances and the difference in angles.
-
-
-[ INSERT GRAPHIC HERE]
 
 As an alternative, we modified the sigma value of the gaussian curve used to determine the headings of the particles when they are initialized at the beginning and after an initial guess is made. Provided that the initial guess is made facing around the correct direction, the particles will have reasonably accurate headings throughout the localization process, as they are updated continually using the update_particles_with_odom function.  This implementation is included as a script in our repository under the name pf_original.py. We did not make the change outlined in the visual above to incorporate the angles  into our weight calculation, but we believe it would also have been effective at eliminating the variation in particle headings. We did not make this change because around this point in the project we had a conversation with our professor about our implementation ideas, and based on that conversation we decided to try a new idea instead. 
 
