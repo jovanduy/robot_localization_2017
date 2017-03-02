@@ -7,7 +7,7 @@ This is the base repo for the robot  localization assignment in CompRobo, spring
 
 A robot in a known environment should be able to figure out where it is within that environment. This is the robot localization problem: given a map of an environment and sensor readings that provide information about the robot’s current location, a robot should be able localize itself (figure out where it is relative to the map). Our goal was to implement an algorithm, specifically the particle filter algorithm, to achieve localization of a Neato robot equipped with a lidar laser, which provides distance-to-object readings for 360˚ around the laser.
 
-In addition to actually writing out a localization algorithm, another goal of this project was to gain more familiarity with ROS and robotics programming in general. 
+In addition to actually writing out a localization algorithm, another goal of this project was to gain more familiarity with ROS and robotics programming in general.
 
 ### Solution to the problem
 
@@ -51,6 +51,9 @@ These steps, except for creating an initial guess, continue to cycle through. Th
 ![original implementation mid](https://github.com/jovanduy/robot_localization_2017/blob/master/my_localizer/images/original_mid.png?raw=true)
 
 ![original implementation end](https://github.com/jovanduy/robot_localization_2017/blob/master/my_localizer/images/original_end.png?raw=true)
+
+![original distance comparison](https://github.com/jovanduy/robot_localization_2017/blob/master/my_localizer/images/RobotLocalizationOriginal%20(2).png?raw=true)
+
 
   We were happy with the results of this implementation, but we did notice that while the x and y positions of particles were very accurate, the headings, or angles in space of the particles were less accurate. This encouraged us to think about ways we might improve how we determine particle weights.
 
